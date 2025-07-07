@@ -1,69 +1,68 @@
 /**
  * Calculate simple interest
  * Formula: A = P(1 + rt)
- * @param {number} principal - The principal amount
- * @param {number} monthlyRate - Monthly interest rate as percentage
- * @param {number} months - Time period in months
- * @returns {number} Final amount after simple interest
+ * @param {number} principal - Principal amount
+ * @param {number} monthlyRate - Monthly interest rate (as percentage)
+ * @param {number} timeInMonths - Time period in months
+ * @returns {number} Final amount
  */
-export const calculateSimpleInterest = (principal, monthlyRate, months) => {
-  if (principal <= 0 || monthlyRate < 0 || months <= 0) {
+export const calculateSimpleInterest = (
+  principal,
+  monthlyRate,
+  timeInMonths
+) => {
+  if (principal <= 0 || monthlyRate < 0 || timeInMonths <= 0) {
     throw new Error("Invalid input values for simple interest calculation");
   }
 
-  const rate = monthlyRate / 100;
-  return principal * (1 + rate * months);
+  const rate = monthlyRate / 100; // Convert percentage to decimal
+  return principal * (1 + rate * timeInMonths);
 };
 
 /**
  * Calculate compound interest
  * Formula: A = P(1 + r/n)^(nt)
- * @param {number} principal - The principal amount
- * @param {number} monthlyRate - Monthly interest rate as percentage
- * @param {number} months - Time period in months
+ * @param {number} principal - Principal amount
+ * @param {number} monthlyRate - Monthly interest rate (as percentage)
+ * @param {number} timeInMonths - Time period in months
  * @param {string} frequency - Compounding frequency ('monthly' or 'yearly')
- * @returns {number} Final amount after compound interest
+ * @returns {number} Final amount
  */
 export const calculateCompoundInterest = (
   principal,
   monthlyRate,
-  months,
+  timeInMonths,
   frequency
 ) => {
-  if (principal <= 0 || monthlyRate < 0 || months <= 0) {
+  if (principal <= 0 || monthlyRate < 0 || timeInMonths <= 0) {
     throw new Error("Invalid input values for compound interest calculation");
   }
 
-  // Convert monthly rate to annual rate
-  const annualRate = (monthlyRate / 100) * 12;
+  const monthlyRateDecimal = monthlyRate / 100;
+  const annualRate = monthlyRateDecimal * 12; // Convert monthly rate to annual
+  const timeInYears = timeInMonths / 12;
 
-  // Determine compounding frequency
-  const compoundingFrequency = frequency === "monthly" ? 12 : 1;
+  let n; // Compounding frequency per year
+  if (frequency === "monthly") {
+    n = 12;
+  } else if (frequency === "yearly") {
+    n = 1;
+  } else {
+    throw new Error("Invalid compounding frequency");
+  }
 
-  // Convert months to years
-  const years = months / 12;
-
-  // Apply compound interest formula
-  return (
-    principal *
-    Math.pow(
-      1 + annualRate / compoundingFrequency,
-      compoundingFrequency * years
-    )
-  );
+  return principal * Math.pow(1 + annualRate / n, n * timeInYears);
 };
 
 /**
- * Format currency for display
+ * Format currency in Indian Rupee format
  * @param {number} amount - Amount to format
- * @param {string} locale - Locale for formatting (default: 'en-IN')
- * @param {string} currency - Currency code (default: 'INR')
  * @returns {string} Formatted currency string
  */
-export const formatCurrency = (amount, locale = "en-IN", currency = "INR") => {
-  return new Intl.NumberFormat(locale, {
+export const formatCurrency = (amount) => {
+  return new Intl.NumberFormat("en-IN", {
     style: "currency",
-    currency: currency,
+    currency: "INR",
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(amount);
@@ -74,7 +73,7 @@ export const formatCurrency = (amount, locale = "en-IN", currency = "INR") => {
  * @param {number} amount - Principal amount
  * @param {number} rate - Interest rate
  * @param {number} period - Time period
- * @returns {Object} Validation result with isValid flag and errors array
+ * @returns {object} Validation result
  */
 export const validateInputs = (amount, rate, period) => {
   const errors = [];
@@ -84,7 +83,7 @@ export const validateInputs = (amount, rate, period) => {
   }
 
   if (amount > 10000000) {
-    errors.push("Amount cannot exceed 10,000,000");
+    errors.push("Amount cannot exceed ₹10,000,000");
   }
 
   if (rate < 0) {

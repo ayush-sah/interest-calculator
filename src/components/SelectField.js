@@ -5,8 +5,8 @@ const SelectField = ({
   value,
   onChange,
   options,
-  disabled = false,
   required = false,
+  disabled = false,
 }) => {
   const selectId = `select-${label.replace(/\s+/g, "-").toLowerCase()}`;
 
@@ -14,19 +14,15 @@ const SelectField = ({
     <div className="input-group">
       <label htmlFor={selectId} className="input-label">
         {label}
-        {required && (
-          <span className="required-indicator" aria-label="required">
-            *
-          </span>
-        )}
+        {required && <span className="required-indicator">*</span>}
       </label>
       <select
         id={selectId}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="select-field"
-        disabled={disabled}
         required={required}
+        disabled={disabled}
+        className="select-field"
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>

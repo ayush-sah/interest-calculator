@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from "react";
 import InputField from "./components/InputField";
 import SelectField from "./components/SelectField";
+import ToggleSwitch from "./components/ToggleSwitch";
 import ResultDisplay from "./components/ResultDisplay";
 import { useValidatedInput } from "./hooks/useValidatedInput";
 import {
@@ -22,20 +23,28 @@ const validators = {
     if (value > 100) return "Interest rate cannot exceed 100%";
     return "";
   },
-  period: (value) => {
+  period: (value, unit) => {
     if (!value || value <= 0) return "Period must be greater than 0";
-    if (value > 1200) return "Period cannot exceed 1200 months (100 years)";
+    const maxValue = unit === "years" ? 100 : 1200;
+    if (value > maxValue) return `Period cannot exceed ${maxValue} ${unit}`;
     return "";
   },
 };
 
 export default function InterestCalculator() {
+  const [periodUnit, setPeriodUnit] = useState("months");
+
   const [amount, setAmount, amountError, isAmountValid, resetAmount] =
     useValidatedInput(0, validators.amount);
   const [monthlyRate, setMonthlyRate, rateError, isRateValid, resetRate] =
     useValidatedInput(0, validators.rate);
   const [period, setPeriod, periodError, isPeriodValid, resetPeriod] =
-    useValidatedInput(0, validators.period);
+    useValidatedInput(
+      0,
+      (value) => validators.period(value, periodUnit),
+      [periodUnit] // Re-validate when period unit changes
+    );
+
   const [interestType, setInterestType] = useState("simple");
   const [compoundFreq, setCompoundFreq] = useState("monthly");
   const [result, setResult] = useState(null);
@@ -51,6 +60,9 @@ export default function InterestCalculator() {
     isRateValid &&
     isPeriodValid;
 
+  // Convert period to months for calculations
+  const periodInMonths = periodUnit === "years" ? period * 12 : period;
+
   const calculateInterest = useCallback(async () => {
     if (!canCalculate) return;
 
@@ -61,7 +73,7 @@ export default function InterestCalculator() {
     await new Promise((resolve) => setTimeout(resolve, 300));
 
     try {
-      const validation = validateInputs(amount, monthlyRate, period);
+      const validation = validateInputs(amount, monthlyRate, periodInMonths);
 
       if (!validation.isValid) {
         setCalculationError(validation.errors.join(", "));
@@ -71,12 +83,16 @@ export default function InterestCalculator() {
       let finalAmount;
 
       if (interestType === "simple") {
-        finalAmount = calculateSimpleInterest(amount, monthlyRate, period);
+        finalAmount = calculateSimpleInterest(
+          amount,
+          monthlyRate,
+          periodInMonths
+        );
       } else {
         finalAmount = calculateCompoundInterest(
           amount,
           monthlyRate,
-          period,
+          periodInMonths,
           compoundFreq
         );
       }
@@ -91,17 +107,46 @@ export default function InterestCalculator() {
     } finally {
       setIsCalculating(false);
     }
-  }, [amount, monthlyRate, period, interestType, compoundFreq, canCalculate]);
+  }, [
+    amount,
+    monthlyRate,
+    periodInMonths,
+    interestType,
+    compoundFreq,
+    canCalculate,
+  ]);
 
   const resetCalculator = useCallback(() => {
     resetAmount();
     resetRate();
     resetPeriod();
+    setPeriodUnit("months");
     setInterestType("simple");
     setCompoundFreq("monthly");
     setResult(null);
     setCalculationError("");
   }, [resetAmount, resetRate, resetPeriod]);
+
+  // Handle period unit change and convert existing value
+  const handlePeriodUnitChange = useCallback(
+    (newUnit) => {
+      if (period > 0) {
+        let convertedPeriod;
+        if (newUnit === "years" && periodUnit === "months") {
+          // Convert months to years
+          convertedPeriod = Math.round((period / 12) * 100) / 100; // Round to 2 decimal places
+        } else if (newUnit === "months" && periodUnit === "years") {
+          // Convert years to months
+          convertedPeriod = Math.round(period * 12);
+        } else {
+          convertedPeriod = period;
+        }
+        setPeriod(convertedPeriod);
+      }
+      setPeriodUnit(newUnit);
+    },
+    [period, periodUnit, setPeriod]
+  );
 
   const interestTypeOptions = [
     { value: "simple", label: "Simple Interest" },
@@ -112,6 +157,11 @@ export default function InterestCalculator() {
     { value: "monthly", label: "Monthly" },
     { value: "yearly", label: "Yearly" },
   ];
+
+  const periodUnitOptions = {
+    leftOption: { value: "months", label: "Months" },
+    rightOption: { value: "years", label: "Years" },
+  };
 
   return (
     <div className="calculator-container">
@@ -150,16 +200,32 @@ export default function InterestCalculator() {
             required
           />
 
-          <InputField
-            label="Time Period"
-            value={period}
-            onChange={setPeriod}
-            error={periodError}
-            placeholder="Enter period in months"
-            min="0"
-            max="1200"
-            required
-          />
+          <div className="period-input-group">
+            <div className="period-input-container">
+              <div className="period-input-field">
+                <InputField
+                  label="Time Period"
+                  value={period}
+                  onChange={setPeriod}
+                  error={periodError}
+                  placeholder={`Enter period in ${periodUnit}`}
+                  min="0"
+                  max={periodUnit === "years" ? "100" : "1200"}
+                  step={periodUnit === "years" ? "0.1" : "1"}
+                  required
+                />
+              </div>
+              <div className="period-toggle-container">
+                <ToggleSwitch
+                  label="Unit"
+                  leftOption={periodUnitOptions.leftOption}
+                  rightOption={periodUnitOptions.rightOption}
+                  value={periodUnit}
+                  onChange={handlePeriodUnitChange}
+                />
+              </div>
+            </div>
+          </div>
 
           <SelectField
             label="Interest Type"
@@ -218,7 +284,9 @@ export default function InterestCalculator() {
             finalAmount={result}
             interestType={interestType}
             monthlyRate={monthlyRate}
-            period={period}
+            period={periodInMonths}
+            periodUnit={periodUnit}
+            originalPeriod={period}
             compoundFreq={compoundFreq}
           />
         )}

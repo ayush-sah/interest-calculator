@@ -2,15 +2,16 @@ import React from "react";
 
 const InputField = ({
   label,
-  type = "number",
   value,
   onChange,
   error,
   placeholder,
+  type = "number",
   min,
   max,
-  step = "any",
+  step,
   required = false,
+  disabled = false,
 }) => {
   const inputId = `input-${label.replace(/\s+/g, "-").toLowerCase()}`;
   const errorId = `${inputId}-error`;
@@ -19,35 +20,25 @@ const InputField = ({
     <div className="input-group">
       <label htmlFor={inputId} className="input-label">
         {label}
-        {required && (
-          <span className="required-indicator" aria-label="required">
-            *
-          </span>
-        )}
+        {required && <span className="required-indicator">*</span>}
       </label>
       <input
         id={inputId}
         type={type}
         value={value}
-        onChange={(e) =>
-          onChange(type === "number" ? Number(e.target.value) : e.target.value)
-        }
-        className={`input-field ${error ? "input-error" : ""}`}
+        onChange={(e) => onChange(Number(e.target.value))}
         placeholder={placeholder}
         min={min}
         max={max}
         step={step}
         required={required}
+        disabled={disabled}
+        className={`input-field ${error ? "input-error" : ""}`}
         aria-describedby={error ? errorId : undefined}
         aria-invalid={error ? "true" : "false"}
       />
       {error && (
-        <span
-          id={errorId}
-          className="error-message"
-          role="alert"
-          aria-live="polite"
-        >
+        <span id={errorId} className="error-message" role="alert">
           {error}
         </span>
       )}

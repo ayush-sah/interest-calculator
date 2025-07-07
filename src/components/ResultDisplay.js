@@ -6,11 +6,27 @@ const ResultDisplay = ({
   finalAmount,
   interestType,
   monthlyRate,
-  period,
+  period, // period in months for calculations
+  periodUnit,
+  originalPeriod, // original period value entered by user
   compoundFreq,
 }) => {
   const interestEarned = finalAmount - principal;
   const totalReturnPercentage = ((interestEarned / principal) * 100).toFixed(2);
+
+  // Format period display
+  const formatPeriodDisplay = () => {
+    if (periodUnit === "years") {
+      return `${originalPeriod} ${
+        originalPeriod === 1 ? "year" : "years"
+      } (${period} months)`;
+    } else {
+      const years = (period / 12).toFixed(1);
+      return `${originalPeriod} ${
+        originalPeriod === 1 ? "month" : "months"
+      } (${years} years)`;
+    }
+  };
 
   return (
     <div
@@ -35,9 +51,7 @@ const ResultDisplay = ({
         </div>
         <div className="info-item">
           <span className="info-label">Time Period:</span>
-          <span className="info-value">
-            {period} months ({(period / 12).toFixed(1)} years)
-          </span>
+          <span className="info-value">{formatPeriodDisplay()}</span>
         </div>
       </div>
 
@@ -52,10 +66,10 @@ const ResultDisplay = ({
             {formatCurrency(interestEarned)}
           </span>
         </div>
-        {/* <div className="result-item">
+        <div className="result-item">
           <span className="result-label">Total Return:</span>
           <span className="result-value">{totalReturnPercentage}%</span>
-        </div> */}
+        </div>
         <div className="result-item final-amount">
           <span className="result-label">Final Amount:</span>
           <span className="result-value">{formatCurrency(finalAmount)}</span>
