@@ -30,7 +30,7 @@ export const useValidatedInput = (initialValue, validator, dependencies = []) =>
 
   // Re-validate when dependencies change
   useEffect(() => {
-    if (touched && validator) {
+    if (touched && validator && value !== '') {
       const validationError = validator(value);
       setError(validationError);
     }
@@ -40,7 +40,7 @@ export const useValidatedInput = (initialValue, validator, dependencies = []) =>
     value, 
     handleChange, 
     touched ? error : '', // Only show error after user has interacted
-    !error,
+    !error && value !== '',
     reset
   ];
 };

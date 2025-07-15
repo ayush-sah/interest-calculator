@@ -48,6 +48,22 @@
   margin-left: 0.25rem;
 }
 
+/* Input wrapper for currency formatting */
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.currency-symbol {
+  position: absolute;
+  left: 0.75rem;
+  color: #6b7280;
+  font-weight: 600;
+  z-index: 1;
+  pointer-events: none;
+}
+
 .input-field,
 .select-field {
   width: 100%;
@@ -57,6 +73,10 @@
   font-size: 1rem;
   transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
   box-sizing: border-box;
+}
+
+.currency-input {
+  padding-left: 2rem;
 }
 
 .input-field:focus,
@@ -162,23 +182,135 @@
   transform: translateX(24px);
 }
 
-/* Period Input Group - Special styling for period input with toggle */
+/* Period Input Group - Enhanced styling */
 .period-input-group {
   margin-bottom: 1.5rem;
+}
+
+.period-mode-toggle {
+  margin-bottom: 1rem;
 }
 
 .period-input-container {
   display: flex;
   gap: 1rem;
-  align-items: flex-end;
+  align-items: flex-start;
 }
 
 .period-input-field {
-  flex: 1;
+  flex: 2;
 }
 
 .period-toggle-container {
   flex: 1;
+  margin-top: 1.75rem; /* Align with input field */
+}
+
+/* Year/Month inputs */
+.year-month-inputs {
+  display: flex;
+  gap: 1rem;
+  flex: 2;
+}
+
+.year-input,
+.month-input {
+  flex: 1;
+}
+
+/* Date Range Picker Styles */
+.date-range-container {
+  position: relative;
+}
+
+.date-range-button {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1rem;
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.date-range-button:hover {
+  border-color: #9ca3af;
+}
+
+.date-range-button:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.date-range-text {
+  color: #374151;
+  text-align: left;
+}
+
+.date-range-icon {
+  color: #6b7280;
+  font-size: 1.2rem;
+}
+
+.date-range-popup {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 2px solid #d1d5db;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  margin-top: 0.25rem;
+}
+
+.date-input-group {
+  margin-bottom: 1rem;
+}
+
+.date-input-group label {
+  display: block;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.date-input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.875rem;
+}
+
+.date-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.date-range-close {
+  width: 100%;
+  padding: 0.5rem;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.date-range-close:hover {
+  background-color: #2563eb;
 }
 
 .calculation-error {
@@ -327,7 +459,7 @@
   color: #10b981;
 }
 
-/* Responsive design */
+/* Responsive design - Enhanced mobile support */
 @media (max-width: 640px) {
   .calculator-container {
     margin: 1rem;
@@ -342,18 +474,42 @@
     flex-direction: column;
   }
   
+  /* Enhanced period input mobile layout */
   .period-input-container {
     flex-direction: column;
     gap: 1rem;
+    align-items: stretch;
   }
   
   .period-input-field,
   .period-toggle-container {
     flex: none;
+    width: 100%;
+  }
+  
+  .period-toggle-container {
+    margin-top: 0;
+  }
+  
+  /* Year/Month inputs mobile layout */
+  .year-month-inputs {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .year-input,
+  .month-input {
+    flex: none;
   }
   
   .toggle-switch-container {
     justify-content: space-between;
+    padding: 0.75rem;
+  }
+  
+  .toggle-option {
+    min-width: 50px;
+    font-size: 0.8rem;
   }
   
   .result-item,
@@ -365,6 +521,40 @@
   
   .calculator-header h1 {
     font-size: 1.5rem;
+  }
+  
+  /* Date range popup mobile adjustments */
+  .date-range-popup {
+    position: fixed;
+    top: 50%;
+    left: 1rem;
+    right: 1rem;
+    transform: translateY(-50%);
+    max-width: none;
+    width: auto;
+  }
+  
+  .currency-symbol {
+    left: 0.5rem;
+  }
+  
+  .currency-input {
+    padding-left: 1.5rem;
+  }
+}
+
+/* Tablet responsive adjustments */
+@media (max-width: 768px) and (min-width: 641px) {
+  .period-input-container {
+    gap: 0.75rem;
+  }
+  
+  .year-month-inputs {
+    gap: 0.75rem;
+  }
+  
+  .toggle-switch-container {
+    padding: 0.6rem;
   }
 }
 
@@ -380,6 +570,14 @@
     display: none;
   }
   
+  .period-mode-toggle {
+    display: none;
+  }
+  
+  .date-range-popup {
+    display: none;
+  }
+  
   .result-container {
     background: #f8f9fa !important;
     color: #000 !important;
@@ -390,7 +588,8 @@
 /* High contrast mode support */
 @media (prefers-contrast: high) {
   .input-field,
-  .select-field {
+  .select-field,
+  .date-range-button {
     border-width: 3px;
   }
   
@@ -406,6 +605,10 @@
   .result-container {
     background: #000 !important;
     border: 2px solid #fff;
+  }
+  
+  .date-range-popup {
+    border-width: 3px;
   }
 }
 
@@ -423,5 +626,133 @@
   
   .toggle-slider {
     transition: none;
+  }
+  
+  .date-range-popup {
+    transition: none;
+  }
+}
+
+/* Focus improvements for better accessibility */
+.date-range-button:focus-visible,
+.input-field:focus-visible,
+.select-field:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Loading state improvements */
+.calculate-button:disabled .loading-spinner {
+  margin-right: 0.5rem;
+}
+
+/* Enhanced error states */
+.input-field.input-error,
+.date-range-button.input-error {
+  border-color: #ef4444;
+  background-color: #fef2f2;
+}
+
+.input-field.input-error:focus,
+.date-range-button.input-error:focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* Improved spacing for better visual hierarchy */
+.period-mode-toggle .toggle-group {
+  margin-bottom: 1rem;
+}
+
+.period-input-group .toggle-group {
+  margin-bottom: 0;
+}
+
+/* Enhanced currency input styling */
+.input-wrapper:focus-within .currency-symbol {
+  color: #3b82f6;
+}
+
+/* Better visual feedback for interactive elements */
+.date-range-button:active {
+  transform: translateY(1px);
+}
+
+.toggle-switch:active {
+  transform: scale(0.95);
+}
+
+/* Improved date picker styling */
+.date-input-group:last-of-type {
+  margin-bottom: 1.5rem;
+}
+
+.date-range-close:focus {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+/* Language Toggle Styles */
+.header-top {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
+
+.language-toggle-container {
+  display: flex;
+  align-items: center;
+}
+
+.language-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  background-color: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.language-option {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+  transition: color 0.2s ease-in-out;
+  min-width: 60px;
+  text-align: center;
+}
+
+.language-option.active {
+  color: #3b82f6;
+  font-weight: 600;
+}
+
+/* Hindi font support */
+.calculator-container[data-language="hi"] {
+  font-family: 'Noto Sans Devanagari', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* RTL support for Hindi (if needed) */
+.calculator-container[data-language="hi"] .input-label,
+.calculator-container[data-language="hi"] .result-label,
+.calculator-container[data-language="hi"] .info-label {
+  text-align: left;
+}
+
+/* Responsive language toggle */
+@media (max-width: 640px) {
+  .header-top {
+    justify-content: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  .language-toggle {
+    padding: 0.75rem;
+  }
+  
+  .language-option {
+    min-width: 50px;
+    font-size: 0.8rem;
   }
 }

@@ -1,9 +1,12 @@
 import React, { useState, useCallback } from "react";
 import InputField from "./components/InputField";
 import SelectField from "./components/SelectField";
-import ToggleSwitch from "./components/ToggleSwitch";
+import PeriodInput from "./components/PeriodInput";
 import ResultDisplay from "./components/ResultDisplay";
+import LanguageToggle from "./components/LanguageToggle";
+import { useLanguage } from "./contexts/LanguageContext";
 import { useValidatedInput } from "./hooks/useValidatedInput";
+import { t } from "./utils/translations";
 import {
   calculateSimpleInterest,
   calculateCompoundInterest,
@@ -11,39 +14,42 @@ import {
 } from "./utils/calculations";
 import "./App.css";
 
-// Validation functions
-const validators = {
-  amount: (value) => {
-    if (!value || value <= 0) return "Amount must be greater than 0";
-    if (value > 10000000) return "Amount cannot exceed ₹10,000,000";
-    return "";
-  },
-  rate: (value) => {
-    if (value < 0) return "Interest rate cannot be negative";
-    if (value > 100) return "Interest rate cannot exceed 100%";
-    return "";
-  },
-  period: (value, unit) => {
-    if (!value || value <= 0) return "Period must be greater than 0";
-    const maxValue = unit === "years" ? 100 : 1200;
-    if (value > maxValue) return `Period cannot exceed ${maxValue} ${unit}`;
-    return "";
-  },
-};
-
 export default function InterestCalculator() {
+  const { language } = useLanguage();
   const [periodUnit, setPeriodUnit] = useState("months");
 
+  // Validation functions with translations
+  const validators = {
+    amount: (value) => {
+      if (!value || value <= 0) return t("amountRequired", language);
+      if (value > 10000000) return t("amountLimit", language);
+      return "";
+    },
+    rate: (value) => {
+      if (!value) return t("rateRequired", language);
+      if (value < 0) return t("rateNegative", language);
+      if (value > 100) return t("rateLimit", language);
+      return "";
+    },
+    period: (value, unit) => {
+      if (!value || value <= 0) return t("periodRequired", language);
+      const maxValue = unit === "years" ? 100 : 1200;
+      const limitKey =
+        unit === "years" ? "periodLimitYears" : "periodLimitMonths";
+      if (value > maxValue) return t(limitKey, language);
+      return "";
+    },
+  };
+
   const [amount, setAmount, amountError, isAmountValid, resetAmount] =
-    useValidatedInput(0, validators.amount);
+    useValidatedInput("", validators.amount);
   const [monthlyRate, setMonthlyRate, rateError, isRateValid, resetRate] =
-    useValidatedInput(0, validators.rate);
+    useValidatedInput("", validators.rate);
   const [period, setPeriod, periodError, isPeriodValid, resetPeriod] =
-    useValidatedInput(
-      0,
-      (value) => validators.period(value, periodUnit),
-      [periodUnit] // Re-validate when period unit changes
-    );
+    useValidatedInput("", (value) => validators.period(value, periodUnit), [
+      periodUnit,
+      language,
+    ]);
 
   const [interestType, setInterestType] = useState("simple");
   const [compoundFreq, setCompoundFreq] = useState("monthly");
@@ -60,7 +66,6 @@ export default function InterestCalculator() {
     isRateValid &&
     isPeriodValid;
 
-  // Convert period to months for calculations
   const periodInMonths = periodUnit === "years" ? period * 12 : period;
 
   const calculateInterest = useCallback(async () => {
@@ -69,7 +74,6 @@ export default function InterestCalculator() {
     setIsCalculating(true);
     setCalculationError("");
 
-    // Add a small delay for better UX
     await new Promise((resolve) => setTimeout(resolve, 300));
 
     try {
@@ -97,13 +101,10 @@ export default function InterestCalculator() {
         );
       }
 
-      // Round to 2 decimal places
       setResult(Math.round(finalAmount * 100) / 100);
     } catch (error) {
       console.error("Calculation error:", error);
-      setCalculationError(
-        "An error occurred during calculation. Please check your inputs."
-      );
+      setCalculationError(t("calculationError", language));
     } finally {
       setIsCalculating(false);
     }
@@ -114,6 +115,7 @@ export default function InterestCalculator() {
     interestType,
     compoundFreq,
     canCalculate,
+    language,
   ]);
 
   const resetCalculator = useCallback(() => {
@@ -127,16 +129,13 @@ export default function InterestCalculator() {
     setCalculationError("");
   }, [resetAmount, resetRate, resetPeriod]);
 
-  // Handle period unit change and convert existing value
   const handlePeriodUnitChange = useCallback(
     (newUnit) => {
       if (period > 0) {
         let convertedPeriod;
         if (newUnit === "years" && periodUnit === "months") {
-          // Convert months to years
-          convertedPeriod = Math.round((period / 12) * 100) / 100; // Round to 2 decimal places
+          convertedPeriod = Math.round((period / 12) * 100) / 100;
         } else if (newUnit === "months" && periodUnit === "years") {
-          // Convert years to months
           convertedPeriod = Math.round(period * 12);
         } else {
           convertedPeriod = period;
@@ -149,25 +148,23 @@ export default function InterestCalculator() {
   );
 
   const interestTypeOptions = [
-    { value: "simple", label: "Simple Interest" },
-    { value: "compound", label: "Compound Interest" },
+    { value: "simple", label: t("simpleInterest", language) },
+    { value: "compound", label: t("compoundInterest", language) },
   ];
 
   const compoundFreqOptions = [
-    { value: "monthly", label: "Monthly" },
-    { value: "yearly", label: "Yearly" },
+    { value: "monthly", label: t("monthly", language) },
+    { value: "yearly", label: t("yearly", language) },
   ];
 
-  const periodUnitOptions = {
-    leftOption: { value: "months", label: "Months" },
-    rightOption: { value: "years", label: "Years" },
-  };
-
   return (
-    <div className="calculator-container">
+    <div className="calculator-container" data-language={language}>
       <header className="calculator-header">
-        <h1>Interest Calculator</h1>
-        <p>Calculate simple and compound interest with precision and ease</p>
+        <div className="header-top">
+          <LanguageToggle />
+        </div>
+        <h1>{t("title", language)}</h1>
+        <p>{t("subtitle", language)}</p>
       </header>
 
       <main className="calculator-form">
@@ -178,57 +175,40 @@ export default function InterestCalculator() {
           }}
         >
           <InputField
-            label="Principal Amount"
+            label={t("principalAmount", language)}
             value={amount}
             onChange={setAmount}
             error={amountError}
-            placeholder="Enter amount in ₹"
+            placeholder={t("enterAmount", language)}
             min="0"
             max="10000000"
             required
+            showRupeeFormat={true}
           />
 
           <InputField
-            label="Monthly Interest Rate"
+            label={t("monthlyInterestRate", language)}
             value={monthlyRate}
             onChange={setMonthlyRate}
             error={rateError}
-            placeholder="Enter monthly rate (%)"
+            placeholder={t("enterMonthlyRate", language)}
             min="0"
             max="100"
             step="0.01"
             required
           />
 
-          <div className="period-input-group">
-            <div className="period-input-container">
-              <div className="period-input-field">
-                <InputField
-                  label="Time Period"
-                  value={period}
-                  onChange={setPeriod}
-                  error={periodError}
-                  placeholder={`Enter period in ${periodUnit}`}
-                  min="0"
-                  max={periodUnit === "years" ? "100" : "1200"}
-                  step={periodUnit === "years" ? "0.1" : "1"}
-                  required
-                />
-              </div>
-              <div className="period-toggle-container">
-                <ToggleSwitch
-                  label="Unit"
-                  leftOption={periodUnitOptions.leftOption}
-                  rightOption={periodUnitOptions.rightOption}
-                  value={periodUnit}
-                  onChange={handlePeriodUnitChange}
-                />
-              </div>
-            </div>
-          </div>
+          <PeriodInput
+            period={period}
+            periodUnit={periodUnit}
+            onPeriodChange={setPeriod}
+            onUnitChange={handlePeriodUnitChange}
+            error={periodError}
+            required
+          />
 
           <SelectField
-            label="Interest Type"
+            label={t("interestType", language)}
             value={interestType}
             onChange={setInterestType}
             options={interestTypeOptions}
@@ -237,7 +217,7 @@ export default function InterestCalculator() {
 
           {interestType === "compound" && (
             <SelectField
-              label="Compounding Frequency"
+              label={t("compoundingFrequency", language)}
               value={compoundFreq}
               onChange={setCompoundFreq}
               options={compoundFreqOptions}
@@ -261,10 +241,10 @@ export default function InterestCalculator() {
               {isCalculating ? (
                 <>
                   <span className="loading-spinner" aria-hidden="true"></span>
-                  Calculating...
+                  {t("calculating", language)}
                 </>
               ) : (
-                "Calculate Interest"
+                t("calculateInterest", language)
               )}
             </button>
 
@@ -273,7 +253,7 @@ export default function InterestCalculator() {
               onClick={resetCalculator}
               className="reset-button"
             >
-              Reset All
+              {t("resetAll", language)}
             </button>
           </div>
         </form>
